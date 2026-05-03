@@ -297,3 +297,374 @@ int main() {
     cout << endl;
     return 0;
 }
+----------------------------------------------------------------------------------------------------
+
+ // Practical 7: Breadth-First Search (BFS)
+#include <iostream>
+#include <vector>
+#include <queue>
+using namespace std;
+ 
+void bfs(const vector<vector<int>>& adj, int start, int V) {
+    vector<bool> visited(V, false);
+    queue<int> q;
+    visited[start] = true;
+    q.push(start);
+ 
+    cout << "BFS traversal from vertex " << start << ": ";
+    while (!q.empty()) {
+        int v = q.front(); q.pop();
+        cout << v << " ";
+        for (int u : adj[v]) {
+            if (!visited[u]) {
+                visited[u] = true;
+                q.push(u);
+            }
+        }
+    }
+    cout << endl;
+}
+ 
+int main() {
+    int V, E;
+    cout << "Enter number of vertices and edges: ";
+    cin >> V >> E;
+ 
+    vector<vector<int>> adj(V);
+    cout << "Enter " << E << " edges (u v):\n";
+    for (int i=0; i<E; i++) {
+        int u, v; cin >> u >> v;
+        adj[u].push_back(v);
+        adj[v].push_back(u);
+    }
+ 
+    int start;
+    cout << "Enter starting vertex: ";
+    cin >> start;
+ 
+    bfs(adj, start, V);
+    return 0;
+}
+/* edges come in pairs. 
+Enter number of vertices and edges: 5 4
+Enter 4 edges (u v):
+0 1
+1 2
+2 3
+3 4
+Enter starting vertex: 0
+ */
+-------------------------------------------------------------------------------------------------------------
+
+ // Practical 8: Depth-First Search (DFS)
+#include <iostream>
+#include <vector>
+using namespace std;
+ 
+void dfsUtil(const vector<vector<int>>& adj, int v, vector<bool>& visited) {
+    visited[v] = true;
+    cout << v << " ";
+    for (int u : adj[v])
+        if (!visited[u]) dfsUtil(adj, u, visited);
+}
+ 
+void dfs(const vector<vector<int>>& adj, int start, int V) {
+    vector<bool> visited(V, false);
+    cout << "DFS traversal from vertex " << start << ": ";
+    dfsUtil(adj, start, visited);
+    cout << endl;
+}
+ 
+int main() {
+    int V, E;
+    cout << "Enter number of vertices and edges: ";
+    cin >> V >> E;
+ 
+    vector<vector<int>> adj(V);
+    cout << "Enter " << E << " edges (u v):\n";
+    for (int i=0; i<E; i++) {
+        int u, v; cin >> u >> v;
+        adj[u].push_back(v);
+        adj[v].push_back(u);
+    }
+ 
+    int start;
+    cout << "Enter starting vertex: ";
+    cin >> start;
+ 
+    dfs(adj, start, V);
+    return 0;
+}
+----------------------------------------------------------------------------------------------------------
+// Practical 9: Prim's Algorithm - Minimum Spanning Tree
+#include <iostream>
+#include <vector>
+#include <climits>
+using namespace std;
+ 
+void primMST(const vector<vector<pair<int,int>>>& adj, int V) {
+    vector<int> key(V, INT_MAX), parent(V, -1);
+    vector<bool> inMST(V, false);
+    key[0] = 0;
+ 
+    for (int count=0; count<V-1; count++) {
+        // Pick min key vertex not yet in MST
+        int u = -1;
+        for (int v=0; v<V; v++)
+            if (!inMST[v] && (u==-1 || key[v] < key[u])) u = v;
+ 
+        inMST[u] = true;
+ 
+        for (auto [v, w] : adj[u]) {
+            if (!inMST[v] && w < key[v]) {
+                key[v] = w;
+                parent[v] = u;
+            }
+        }
+    }
+ 
+    cout << "\nMinimum Spanning Tree edges:\n";
+    cout << "Edge\t\tWeight\n";
+    int total = 0;
+    for (int v=1; v<V; v++) {
+        cout << parent[v] << " - " << v << "\t\t" << key[v] << "\n";
+        total += key[v];
+    }
+    cout << "Total MST weight: " << total << endl;
+}
+ 
+int main() {
+    int V, E;
+    cout << "Enter number of vertices and edges: ";
+    cin >> V >> E;
+ 
+    vector<vector<pair<int,int>>> adj(V);
+    cout << "Enter " << E << " edges (u v weight):\n";
+    for (int i=0; i<E; i++) {
+        int u, v, w; cin >> u >> v >> w;
+        adj[u].push_back({v, w});
+        adj[v].push_back({u, w});
+    }
+ 
+    primMST(adj, V);
+    return 0;
+}
+/* Enter number of vertices and edges: 4 5
+Enter 5 edges (u v weight):
+0 1 10
+0 2 6
+0 3 5
+1 3 15
+2 3 4
+Enter starting vertex: 0
+ */
+
+------------------------------------------------------------------------------------------------------------------
+
+ // Practical 10: Dijkstra's Algorithm - Shortest Path
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <climits>
+using namespace std;
+ 
+void dijkstra(const vector<vector<pair<int,int>>>& adj, int src, int V) {
+    vector<int> dist(V, INT_MAX);
+    priority_queue<pair<int,int>, vector<pair<int,int>>, greater<>> pq;
+    dist[src] = 0;
+    pq.push({0, src});
+ 
+    while (!pq.empty()) {
+        auto [d, u] = pq.top(); pq.pop();
+        if (d > dist[u]) continue;
+        for (auto [v, w] : adj[u]) {
+            if (dist[u] + w < dist[v]) {
+                dist[v] = dist[u] + w;
+                pq.push({dist[v], v});
+            }
+        }
+    }
+ 
+    cout << "\nShortest distances from vertex " << src << ":\n";
+    cout << "Vertex\tDistance\n";
+    for (int i=0; i<V; i++) {
+        if (dist[i] == INT_MAX) cout << i << "\tUnreachable\n";
+        else cout << i << "\t" << dist[i] << "\n";
+    }
+}
+ 
+int main() {
+    int V, E;
+    cout << "Enter number of vertices and edges: ";
+    cin >> V >> E;
+ 
+    vector<vector<pair<int,int>>> adj(V);
+    cout << "Enter " << E << " edges (u v weight):\n";
+    for (int i=0; i<E; i++) {
+        int u, v, w; cin >> u >> v >> w;
+        adj[u].push_back({v, w});
+        adj[v].push_back({u, w}); // remove this line for directed graph
+    }
+ 
+    int src;
+    cout << "Enter source vertex: ";
+    cin >> src;
+ 
+    dijkstra(adj, src, V);
+    return 0;
+}
+/* Enter number of vertices and edges: 5 6
+Enter 6 edges (u v weight):
+0 1 4
+0 2 2
+1 2 1
+1 3 5
+2 4 3
+3 4 1
+Enter source vertex: 0
+ */ 
+
+-----------------------------------------------------------------------------------------------------------------------
+// Practical 11: Weighted Interval Scheduling (Dynamic Programming)
+#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+ 
+struct Interval {
+    int start, end, weight;
+};
+ 
+// Binary search: latest interval that ends <= start of interval i
+int latestCompatible(const vector<Interval>& jobs, int i) {
+    int lo=0, hi=i-1;
+    while (lo <= hi) {
+        int mid = (lo+hi)/2;
+        if (jobs[mid].end <= jobs[i].start) {
+            if (jobs[mid+1].end <= jobs[i].start) lo = mid+1;
+            else return mid;
+        } else hi = mid-1;
+    }
+    return -1;
+}
+ 
+int main() {
+    int n;
+    cout << "Enter number of intervals: ";
+    cin >> n;
+ 
+    vector<Interval> jobs(n);
+    cout << "Enter each interval as: start end weight\n";
+    for (auto& j : jobs) cin >> j.start >> j.end >> j.weight;
+ 
+    // Sort by finish time
+    sort(jobs.begin(), jobs.end(), [](const Interval& a, const Interval& b){
+        return a.end < b.end;
+    });
+ 
+    vector<int> dp(n+1, 0);
+    for (int i=1; i<=n; i++) {
+        int p = latestCompatible(jobs, i-1);
+        int include = jobs[i-1].weight + (p >= 0 ? dp[p+1] : 0);
+        dp[i] = max(dp[i-1], include);
+    }
+ 
+    cout << "\nMaximum weight from scheduled intervals: " << dp[n] << endl;
+ 
+    // Traceback selected intervals
+    cout << "Selected intervals (start, end, weight):\n";
+    int i = n;
+    while (i > 0) {
+        int p = latestCompatible(jobs, i-1);
+        int include = jobs[i-1].weight + (p >= 0 ? dp[p+1] : 0);
+        if (include >= dp[i-1]) {
+            cout << "  [" << jobs[i-1].start << ", " << jobs[i-1].end
+                 << "] weight=" << jobs[i-1].weight << "\n";
+            i = (p >= 0) ? p+1 : 0;
+        } else {
+            i--;
+        }
+    }
+    return 0;
+}
+/* Enter number of intervals: 4
+Enter each interval as: start end weight
+1 3 5
+2 5 6
+4 7 5
+6 8 4
+
+ What these intervals look like on a timeline:
+Time:  1  2  3  4  5  6  7  8
+Job1:  [-----]              w=5
+Job2:     [---------]       w=6
+Job3:          [-----]      w=5
+Job4:                [---]  w=4
+
+*/
+------------------------------------------------------------------------------------------------------------
+
+ // Practical 12: 0-1 Knapsack Problem (Dynamic Programming)
+#include <iostream>
+#include <vector>
+using namespace std;
+ 
+int main() {
+    int n, W;
+    cout << "Enter number of items: ";
+    cin >> n;
+    cout << "Enter knapsack capacity: ";
+    cin >> W;
+ 
+    vector<int> weight(n), value(n);
+    cout << "Enter weight and value of each item:\n";
+    for (int i=0; i<n; i++) {
+        cout << "Item " << i+1 << " (weight value): ";
+        cin >> weight[i] >> value[i];
+    }
+ 
+    // DP table
+    vector<vector<int>> dp(n+1, vector<int>(W+1, 0));
+    for (int i=1; i<=n; i++) {
+        for (int w=0; w<=W; w++) {
+            dp[i][w] = dp[i-1][w]; // don't include item i
+            if (weight[i-1] <= w)
+                dp[i][w] = max(dp[i][w], dp[i-1][w-weight[i-1]] + value[i-1]);
+        }
+    }
+ 
+    cout << "\nMaximum value: " << dp[n][W] << endl;
+ 
+    // Traceback selected items
+    cout << "Items selected:\n";
+    int w = W;
+    for (int i=n; i>0; i--) {
+        if (dp[i][w] != dp[i-1][w]) {
+            cout << "  Item " << i << " (weight=" << weight[i-1]
+                 << ", value=" << value[i-1] << ")\n";
+            w -= weight[i-1];
+        }
+    }
+ 
+    // Print DP table (for small inputs)
+    if (n <= 8 && W <= 15) {
+        cout << "\nDP Table:\n   ";
+        for (int j=0; j<=W; j++) cout << j << "\t";
+        cout << "\n";
+        for (int i=0; i<=n; i++) {
+            cout << i << ": ";
+            for (int j=0; j<=W; j++) cout << dp[i][j] << "\t";
+            cout << "\n";
+        }
+    }
+    return 0;
+}
+/* Enter number of items: 4
+Enter knapsack capacity: 10
+Enter weight and value of each item:
+Item 1 (weight value): 2 6
+Item 2 (weight value): 2 10
+Item 3 (weight value): 3 12
+Item 4 (weight value): 5 13
+*/
+ 
